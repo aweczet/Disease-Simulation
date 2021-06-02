@@ -23,17 +23,15 @@ public class TimeTickSystem : MonoBehaviour
     private void Update()
     {
         _tickTimer += Time.deltaTime;
-        if (_tickTimer >= MAXTick)
+        if (!(_tickTimer >= MAXTick)) return;
+        _tickTimer -= MAXTick;
+        _tick++;
+        if (OnTick != null)
         {
-            _tickTimer -= MAXTick;
-            _tick++;
-            if (OnTick != null)
+            OnTick(this, new OnTickEvents()
             {
-                OnTick(this, new OnTickEvents()
-                {
-                    Tick = _tick
-                });
-            }
+                Tick = _tick
+            });
         }
     }
 }
