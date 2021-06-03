@@ -21,8 +21,8 @@ public class SubjectController : MonoBehaviour
         _rigidbody = transform.GetComponent<Rigidbody2D>();
         _tickSystemDelegate = delegate
         {
-            // status = (StatusType) Random.Range(0, Enum.GetValues(typeof(StatusType)).Length);
-            // Debug.Log(status);
+            Age();
+            Die();
         };
         TimeTickSystem.OnTick += _tickSystemDelegate;
         Init();
@@ -42,6 +42,8 @@ public class SubjectController : MonoBehaviour
         _speed = Random.Range(5f, 10f);
         status = (StatusType) Random.Range(0, Enum.GetValues(typeof(StatusType)).Length);
         _age = Random.Range(0, 61);
+        _immunity = Random.Range(0f, 10f);
+        _immunity = CheckImmunity();
     }
 
     private float CheckImmunity()
@@ -55,19 +57,37 @@ public class SubjectController : MonoBehaviour
         else if (_age >= 40 && _age < 70)
             retImmunity = _immunity;
 
+        if (_immunity != retImmunity)
+        {
+            Debug.Log("Immunity changed at age: " + _age);
+        }
+
         return retImmunity;
     }
 
 
-    private void ChangeDirection(float amount = 180f)
+    private void Age()
     {
-        transform.Rotate(Vector3.forward * amount, Space.Self);
+        _age += 1;
+        _immunity = CheckImmunity();
     }
 
-    private void OnCollisionEnter2D(Collision2D other)
+    private void Die()
     {
-        if (other.transform.CompareTag("Subject"))
-            ChangeDirection(Random.Range(0f, 360f));
-        else ChangeDirection();
+        if (_age > 100 || _immunity <= 0)
+        {
+            TimeTickSystem.OnTick -= _tickSystemDelegate;
+            Destroy(gameObject);
+        }
+    }
+
+    private void ChangeDirection()
+    {
+        transform.Rotate(Vector3.forward * Random.Range(0f, 360f), Space.Self);
+    }
+
+    private void OnCollisionStay2D(Collision2D other)
+    {
+        ChangeDirection();
     }
 }
