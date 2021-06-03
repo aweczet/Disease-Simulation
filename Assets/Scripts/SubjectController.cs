@@ -4,21 +4,28 @@ using Random = UnityEngine.Random;
 
 public class SubjectController : MonoBehaviour
 {
+    private SubjectGenerator _subjectGenerator;
     private Vector2 _maxBoardSize;
     private EventHandler<TimeTickSystem.OnTickEvents> _tickSystemDelegate;
     private Rigidbody2D _rigidbody;
+    
+    private const float BirthProbability = 0.015f;
 
     private Vector2 _moveDirection;
     private float _speed;
-
     public StatusType status;
-    private int _age;
+    [SerializeField] private int _age;
     private float _immunity;
 
+    public bool isChild;
+
+    // To change color we can use: GetComponent<Renderer>().material.color = Color.color
+    
     private void Start()
     {
-        _maxBoardSize = new Vector2(8f, 4f);
+        _maxBoardSize = new Vector2(7.9f, 3.9f);
         _rigidbody = transform.GetComponent<Rigidbody2D>();
+        _subjectGenerator = FindObjectOfType<SubjectGenerator>();
         _tickSystemDelegate = delegate
         {
             Age();
@@ -26,6 +33,8 @@ public class SubjectController : MonoBehaviour
         };
         TimeTickSystem.OnTick += _tickSystemDelegate;
         Init();
+        if (isChild)
+            SetChildStats();
     }
 
     private void Update()
@@ -33,9 +42,9 @@ public class SubjectController : MonoBehaviour
         _rigidbody.velocity = transform.up * _speed;
     }
 
+    // Set random position, rotation, speed, status, age and immunity value
     private void Init()
     {
-        // Set random position, rotation, speed, status, age and immunity value
         transform.position = new Vector2(Random.Range(-_maxBoardSize.x, _maxBoardSize.x),
             Random.Range(-_maxBoardSize.y, _maxBoardSize.y));
         transform.Rotate(Vector3.forward * Random.Range(0f, 360f), Space.Self);
@@ -56,11 +65,6 @@ public class SubjectController : MonoBehaviour
             retImmunity = _immunity > 6 ? Random.Range(3f, 6f) : _immunity;
         else if (_age >= 40 && _age < 70)
             retImmunity = _immunity;
-
-        if (_immunity != retImmunity)
-        {
-            Debug.Log("Immunity changed at age: " + _age);
-        }
 
         return retImmunity;
     }
@@ -88,6 +92,23 @@ public class SubjectController : MonoBehaviour
 
     private void OnCollisionStay2D(Collision2D other)
     {
+        if (other.transform.CompareTag("Subject"))
+        {
+            int otherAge = other.transform.GetComponent<SubjectController>()._age;
+            if (Random.value < BirthProbability && otherAge >= 20 && otherAge <= 40 && _age >= 20 && _age <= 40)
+            {
+                if (Random.value < .1f)
+                    _subjectGenerator.GenerateChild();
+                _subjectGenerator.GenerateChild();
+            }
+        }
         ChangeDirection();
+    }
+
+    private void SetChildStats()
+    {
+        status = StatusType.ZZ;
+        _age = 0;
+        _immunity = 10;
     }
 }
