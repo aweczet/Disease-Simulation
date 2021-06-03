@@ -8,7 +8,7 @@ public class SubjectController : MonoBehaviour
     private Vector2 _maxBoardSize;
     private EventHandler<TimeTickSystem.OnTickEvents> _tickSystemDelegate;
     private Rigidbody2D _rigidbody;
-    
+
     private const float BirthProbability = 0.015f;
 
     private Vector2 _moveDirection;
@@ -19,8 +19,6 @@ public class SubjectController : MonoBehaviour
 
     public bool isChild;
 
-    // To change color we can use: GetComponent<Renderer>().material.color = Color.color
-    
     private void Start()
     {
         _maxBoardSize = new Vector2(7.9f, 3.9f);
@@ -35,6 +33,7 @@ public class SubjectController : MonoBehaviour
         Init();
         if (isChild)
             SetChildStats();
+        ChangeColor();
     }
 
     private void Update()
@@ -102,6 +101,7 @@ public class SubjectController : MonoBehaviour
                 _subjectGenerator.GenerateChild();
             }
         }
+
         ChangeDirection();
     }
 
@@ -110,5 +110,34 @@ public class SubjectController : MonoBehaviour
         status = StatusType.ZZ;
         _age = 0;
         _immunity = 10;
+    }
+
+    private void ChangeColor()
+    {
+        Color newColor;
+        switch (status)
+        {
+            // Chory
+            case StatusType.C:
+                newColor = Color.red;
+                break;
+            // Zarażony
+            case StatusType.Z:
+                newColor = Color.yellow;
+                break;
+            // Zdrowiejący
+            case StatusType.ZD:
+                newColor = new Color(1, .65f, 0);
+                break;
+            // Zdrowy
+            case StatusType.ZZ:
+                newColor = Color.green;
+                break;
+            default:
+                newColor = Color.white;
+                break;
+        }
+
+        transform.GetComponent<Renderer>().material.color = newColor;
     }
 }
