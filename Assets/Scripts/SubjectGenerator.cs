@@ -1,16 +1,23 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 
 public class SubjectGenerator : MonoBehaviour
 {
     public GameObject prefab;
+    private TextMeshProUGUI _populationText;
 
     private void Start()
     {
-        Debug.Log(prefab.name);
+        _populationText = GameObject.Find("Canvas").transform.GetChild(0).GetComponent<TextMeshProUGUI>();
         for (int i = 0; i < 50; i++)
         {
             Instantiate(prefab, new Vector3(0, 0, 0), Quaternion.identity);
         }
+    }
+
+    private void Update()
+    {
+        _populationText.text = FindObjectsOfType<SubjectController>().Length.ToString();
     }
 
     public void GenerateChild()
