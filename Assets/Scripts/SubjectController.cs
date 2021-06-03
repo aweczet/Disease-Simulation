@@ -10,7 +10,8 @@ public class SubjectController : MonoBehaviour
     private Rigidbody2D _rigidbody;
 
     private const float BirthProbability = 0.015f;
-
+    private int _dayCounter;
+    
     private Vector2 _moveDirection;
     private float _speed;
     public StatusType status;
@@ -28,6 +29,7 @@ public class SubjectController : MonoBehaviour
         {
             Age();
             Die();
+            CheckStatus();
         };
         TimeTickSystem.OnTick += _tickSystemDelegate;
         Init();
@@ -117,19 +119,15 @@ public class SubjectController : MonoBehaviour
         Color newColor;
         switch (status)
         {
-            // Chory
             case StatusType.C:
                 newColor = Color.red;
                 break;
-            // Zarażony
             case StatusType.Z:
                 newColor = Color.yellow;
                 break;
-            // Zdrowiejący
             case StatusType.ZD:
                 newColor = new Color(1, .65f, 0);
                 break;
-            // Zdrowy
             case StatusType.ZZ:
                 newColor = Color.green;
                 break;
@@ -139,5 +137,33 @@ public class SubjectController : MonoBehaviour
         }
 
         transform.GetComponent<Renderer>().material.color = newColor;
+    }
+
+    private void CheckStatus()
+    {
+        var newStatus = status;
+        switch (status)
+        {
+            case StatusType.Z:
+                if (_dayCounter >= 2)
+                    newStatus = StatusType.C;
+                break;
+            case StatusType.C:
+                if (_dayCounter >= 7)
+                    newStatus = StatusType.ZD;
+                break;
+            case StatusType.ZD:
+                if (_dayCounter >= 5)
+                    newStatus = StatusType.ZZ;
+                break;
+        }
+
+        if (status != newStatus)
+        {
+            status = newStatus;
+            ChangeColor();
+            _dayCounter = 0;
+        }
+        _dayCounter++;
     }
 }
