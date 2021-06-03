@@ -9,9 +9,9 @@ public class SubjectController : MonoBehaviour
     private EventHandler<TimeTickSystem.OnTickEvents> _tickSystemDelegate;
     private Rigidbody2D _rigidbody;
 
-    private const float BirthProbability = 0.015f;
+    private const float BirthProbability = 0.02f;
     private int _dayCounter;
-    
+
     private Vector2 _moveDirection;
     private float _speed;
     public StatusType status;
@@ -23,7 +23,7 @@ public class SubjectController : MonoBehaviour
     // Function called at start of simulation
     private void Start()
     {
-        _maxBoardSize = new Vector2(7.9f, 3.9f);
+        _maxBoardSize = new Vector2(10f, 10f);
         _rigidbody = transform.GetComponent<Rigidbody2D>();
         _subjectGenerator = FindObjectOfType<SubjectGenerator>();
         _tickSystemDelegate = delegate
@@ -56,7 +56,7 @@ public class SubjectController : MonoBehaviour
         _immunity = Random.Range(0f, 10f);
         _immunity = CheckImmunity();
     }
-    
+
     // Check if value of immunity should change - if so - change it
     private float CheckImmunity()
     {
@@ -72,13 +72,26 @@ public class SubjectController : MonoBehaviour
         return retImmunity;
     }
 
+    // Get enum of immunity
+    private ImmunityType GetImmunityName()
+    {
+        ImmunityType immunityType;
+        if (_immunity < 3)
+            immunityType = ImmunityType.Low;
+        else if (_immunity < 6)
+            immunityType = ImmunityType.Middle;
+        else
+            immunityType = ImmunityType.High;
+        return immunityType;
+    }
+
     // Subjects should age every day
     private void Age()
     {
         _age += 1;
         _immunity = CheckImmunity();
     }
-    
+
     // Subjects should die if too old or too weak
     private void Die()
     {
@@ -93,13 +106,73 @@ public class SubjectController : MonoBehaviour
     private void OnCollisionStay2D(Collision2D other)
     {
         transform.Rotate(Vector3.forward * Random.Range(0f, 360f), Space.Self);
+    }
 
+    private void OnCollisionEnter2D(Collision2D other)
+    {
         if (!other.transform.CompareTag("Subject")) return;
-        
-        int otherAge = other.transform.GetComponent<SubjectController>()._age;
+
+        SubjectController otherSubject = other.transform.GetComponent<SubjectController>();
+        int otherAge = otherSubject._age;
+        var otherStatus = otherSubject.status;
+
         GiveBirth(otherAge);
+        Dependency(otherSubject);
+    }
 
+    // Dependencies between subjects
+    private void Dependency(SubjectController otherSubject)
+    {
+        StatusType otherStatus = otherSubject.status;
+        StatusType newStatus = status;
+        switch (status)
+        {
+            case StatusType.C:
+                if (otherStatus == StatusType.Z)
+                    _dayCounter = 0;
 
+                if (otherStatus == StatusType.C)
+                    _immunity = Mathf.Min(_immunity, otherSubject._immunity);
+
+                break;
+            case StatusType.Z:
+                if (otherStatus == StatusType.Z || otherStatus == StatusType.ZD)
+                    _immunity -= 1;
+
+                if (otherStatus == StatusType.C && GetImmunityName() != ImmunityType.High)
+                    newStatus = StatusType.C;
+
+                break;
+            case StatusType.ZD:
+                if (otherStatus == StatusType.ZZ)
+                    _immunity += 1;
+
+                if (otherStatus == StatusType.C && GetImmunityName() != ImmunityType.High)
+                    newStatus = StatusType.C;
+
+                break;
+            case StatusType.ZZ:
+                if (otherStatus == StatusType.Z && GetImmunityName() == ImmunityType.Low)
+                    newStatus = StatusType.Z;
+
+                if (otherStatus == StatusType.C)
+                    if (GetImmunityName() != ImmunityType.High)
+                        newStatus = StatusType.Z;
+                    else
+                        _immunity -= 3;
+
+                if (otherStatus == StatusType.ZZ)
+                    _immunity = Mathf.Max(_immunity, otherSubject._immunity);
+
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        if (status == newStatus) return;
+        status = newStatus;
+        ChangeColor();
+        _dayCounter = 0;
     }
 
     // Colliding subjects can give birth to a child(s)
@@ -180,6 +253,7 @@ public class SubjectController : MonoBehaviour
             ChangeColor();
             _dayCounter = 0;
         }
+
         _dayCounter++;
     }
 }

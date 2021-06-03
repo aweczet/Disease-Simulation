@@ -5,3 +5,10 @@
     ZD,
     ZZ
 }
+
+public enum ImmunityType
+{
+    Low,
+    Middle,
+    High
+}

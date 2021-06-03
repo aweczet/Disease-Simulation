@@ -11,7 +11,7 @@ public class TimeTickSystem : MonoBehaviour
     public static event EventHandler<OnTickEvents> OnTick;
     
     // Number of seconds per tick
-    private const float MAXTick = .5f;
+    private const float MAXTick = 1f;
     private int _tick;
     private float _tickTimer;
 
