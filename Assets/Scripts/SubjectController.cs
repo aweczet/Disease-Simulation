@@ -9,7 +9,7 @@ public class SubjectController : MonoBehaviour
     private EventHandler<TimeTickSystem.OnTickEvents> _tickSystemDelegate;
     private Rigidbody2D _rigidbody;
 
-    private const float BirthProbability = 0.02f;
+    private const float BirthProbability = 0.2f;
     private int _dayCounter;
 
     private Vector2 _moveDirection;
@@ -89,7 +89,8 @@ public class SubjectController : MonoBehaviour
     private void Age()
     {
         _age += 1;
-        _immunity = CheckImmunity();
+        if (_age >= 15 || !isChild)
+            _immunity = CheckImmunity();
     }
 
     // Subjects should die if too old or too weak
@@ -106,6 +107,11 @@ public class SubjectController : MonoBehaviour
     private void OnCollisionStay2D(Collision2D other)
     {
         transform.Rotate(Vector3.forward * Random.Range(0f, 360f), Space.Self);
+        
+        if (!other.transform.CompareTag("Subject")) return;
+        SubjectController otherSubject = other.transform.GetComponent<SubjectController>();
+        int otherAge = otherSubject._age;
+        GiveBirth(otherAge);
     }
 
     private void OnCollisionEnter2D(Collision2D other)
@@ -113,10 +119,8 @@ public class SubjectController : MonoBehaviour
         if (!other.transform.CompareTag("Subject")) return;
 
         SubjectController otherSubject = other.transform.GetComponent<SubjectController>();
-        int otherAge = otherSubject._age;
         var otherStatus = otherSubject.status;
 
-        GiveBirth(otherAge);
         Dependency(otherSubject);
     }
 
@@ -145,7 +149,7 @@ public class SubjectController : MonoBehaviour
                 break;
             case StatusType.ZD:
                 if (otherStatus == StatusType.ZZ)
-                    _immunity += 1;
+                    _immunity = _immunity - 1 <= 10 ? _immunity + 1 : _immunity;
 
                 if (otherStatus == StatusType.C && GetImmunityName() != ImmunityType.High)
                     newStatus = StatusType.C;

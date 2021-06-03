@@ -1,15 +1,30 @@
-﻿using TMPro;
+﻿using System;
+using TMPro;
 using UnityEngine;
 
 public class SubjectGenerator : MonoBehaviour
 {
     public GameObject prefab;
     private TextMeshProUGUI _populationText;
+    private TextMeshProUGUI _dayText;
+    private int _day;
+    
+    private EventHandler<TimeTickSystem.OnTickEvents> _tickSystemDelegate;
 
     private void Start()
     {
-        _populationText = GameObject.Find("Canvas").transform.GetChild(0).GetComponent<TextMeshProUGUI>();
-        for (int i = 0; i < 50; i++)
+        Transform canvas = GameObject.Find("Canvas").transform;
+        _populationText = canvas.GetChild(0).GetComponent<TextMeshProUGUI>();
+        _dayText = canvas.GetChild(1).GetComponent<TextMeshProUGUI>();
+        
+        _tickSystemDelegate = delegate
+        {
+            _day += 1;
+            _dayText.text = _day.ToString();
+        };
+        TimeTickSystem.OnTick += _tickSystemDelegate;
+        
+        for (int i = 0; i < 100; i++)
         {
             Instantiate(prefab, new Vector3(0, 0, 0), Quaternion.identity);
         }
@@ -26,6 +41,5 @@ public class SubjectGenerator : MonoBehaviour
         SubjectController child = childGameObject.GetComponent<SubjectController>();
         child.transform.name = "Child";
         child.isChild = true;
-        Debug.Log("Child was born!");
     }
 }
