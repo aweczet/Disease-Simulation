@@ -20,6 +20,7 @@ public class SubjectController : MonoBehaviour
 
     public bool isChild;
 
+    // Function called at start of simulation
     private void Start()
     {
         _maxBoardSize = new Vector2(7.9f, 3.9f);
@@ -55,7 +56,8 @@ public class SubjectController : MonoBehaviour
         _immunity = Random.Range(0f, 10f);
         _immunity = CheckImmunity();
     }
-
+    
+    // Check if value of immunity should change - if so - change it
     private float CheckImmunity()
     {
         float retImmunity = 0;
@@ -70,13 +72,14 @@ public class SubjectController : MonoBehaviour
         return retImmunity;
     }
 
-
+    // Subjects should age every day
     private void Age()
     {
         _age += 1;
         _immunity = CheckImmunity();
     }
-
+    
+    // Subjects should die if too old or too weak
     private void Die()
     {
         if (_age > 100 || _immunity <= 0)
@@ -86,22 +89,31 @@ public class SubjectController : MonoBehaviour
         }
     }
 
+    // After collision: rotate, spread disease and/or give birth to a child(s)
     private void OnCollisionStay2D(Collision2D other)
     {
-        if (other.transform.CompareTag("Subject"))
-        {
-            int otherAge = other.transform.GetComponent<SubjectController>()._age;
-            if (Random.value < BirthProbability && otherAge >= 20 && otherAge <= 40 && _age >= 20 && _age <= 40)
-            {
-                if (Random.value < .1f)
-                    _subjectGenerator.GenerateChild();
-                _subjectGenerator.GenerateChild();
-            }
-        }
-
         transform.Rotate(Vector3.forward * Random.Range(0f, 360f), Space.Self);
+
+        if (!other.transform.CompareTag("Subject")) return;
+        
+        int otherAge = other.transform.GetComponent<SubjectController>()._age;
+        GiveBirth(otherAge);
+
+
     }
 
+    // Colliding subjects can give birth to a child(s)
+    private void GiveBirth(int otherAge)
+    {
+        if (Random.value < BirthProbability && otherAge >= 20 && otherAge <= 40 && _age >= 20 && _age <= 40)
+        {
+            if (Random.value < .1f)
+                _subjectGenerator.GenerateChild();
+            _subjectGenerator.GenerateChild();
+        }
+    }
+
+    // If object is child it should get not random values as init
     private void SetChildStats()
     {
         status = StatusType.ZZ;
@@ -109,6 +121,7 @@ public class SubjectController : MonoBehaviour
         _immunity = 10;
     }
 
+    // Each status have own color
     private void ChangeColor()
     {
         Color newColor;
@@ -133,6 +146,7 @@ public class SubjectController : MonoBehaviour
         transform.GetComponent<Renderer>().material.color = newColor;
     }
 
+    // Statuses transiting to another (also doing damage/healing subject) 
     private void CheckStatus()
     {
         var newStatus = status;
