@@ -16,7 +16,7 @@ public class SubjectController : MonoBehaviour
     private float _speed;
     public StatusType status;
     [SerializeField] private int _age;
-    private float _immunity;
+    [SerializeField] private float _immunity;
 
     public bool isChild;
 
@@ -132,8 +132,7 @@ public class SubjectController : MonoBehaviour
                 newColor = Color.green;
                 break;
             default:
-                newColor = Color.white;
-                break;
+                throw new ArgumentOutOfRangeException();
         }
 
         transform.GetComponent<Renderer>().material.color = newColor;
@@ -145,17 +144,25 @@ public class SubjectController : MonoBehaviour
         switch (status)
         {
             case StatusType.Z:
+                _immunity -= .1f;
                 if (_dayCounter >= 2)
                     newStatus = StatusType.C;
                 break;
             case StatusType.C:
+                _immunity -= .5f;
                 if (_dayCounter >= 7)
                     newStatus = StatusType.ZD;
                 break;
             case StatusType.ZD:
+                _immunity = _immunity <= 10 - .1f ? _immunity + .1f : _immunity;
                 if (_dayCounter >= 5)
                     newStatus = StatusType.ZZ;
                 break;
+            case StatusType.ZZ:
+                _immunity = _immunity <= 10 - .05f ? _immunity + .05f : _immunity;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
 
         if (status != newStatus)
