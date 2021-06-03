@@ -86,11 +86,6 @@ public class SubjectController : MonoBehaviour
         }
     }
 
-    private void ChangeDirection()
-    {
-        transform.Rotate(Vector3.forward * Random.Range(0f, 360f), Space.Self);
-    }
-
     private void OnCollisionStay2D(Collision2D other)
     {
         if (other.transform.CompareTag("Subject"))
@@ -104,7 +99,7 @@ public class SubjectController : MonoBehaviour
             }
         }
 
-        ChangeDirection();
+        transform.Rotate(Vector3.forward * Random.Range(0f, 360f), Space.Self);
     }
 
     private void SetChildStats()
