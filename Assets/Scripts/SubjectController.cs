@@ -14,8 +14,8 @@ public class SubjectController : MonoBehaviour
 
     private Vector2 _moveDirection;
     private float _speed;
-    public StatusType status;
-    [SerializeField] private int _age;
+    private StatusType _status;
+    public int age;
     [SerializeField] private float _immunity;
 
     public bool isChild;
@@ -51,8 +51,8 @@ public class SubjectController : MonoBehaviour
             Random.Range(-_maxBoardSize.y, _maxBoardSize.y));
         transform.Rotate(Vector3.forward * Random.Range(0f, 360f), Space.Self);
         _speed = Random.Range(5f, 10f);
-        status = (StatusType) Random.Range(0, Enum.GetValues(typeof(StatusType)).Length);
-        _age = Random.Range(0, 61);
+        _status = (StatusType) Random.Range(0, Enum.GetValues(typeof(StatusType)).Length);
+        age = Random.Range(0, 61);
         _immunity = Random.Range(0f, 10f);
         _immunity = CheckImmunity();
     }
@@ -62,11 +62,11 @@ public class SubjectController : MonoBehaviour
     {
         float retImmunity = 0;
 
-        if ((_age >= 0 && _age < 15) || (_age >= 70 && _age <= 100))
+        if ((age >= 0 && age < 15) || (age >= 70 && age <= 100))
             retImmunity = _immunity > 3 ? Random.Range(0f, 3f) : _immunity;
-        else if (_age >= 15 && _age < 40)
+        else if (age >= 15 && age < 40)
             retImmunity = _immunity > 6 ? Random.Range(3f, 6f) : _immunity;
-        else if (_age >= 40 && _age < 70)
+        else if (age >= 40 && age < 70)
             retImmunity = _immunity;
 
         return retImmunity;
@@ -88,15 +88,15 @@ public class SubjectController : MonoBehaviour
     // Subjects should age every day
     private void Age()
     {
-        _age += 1;
-        if (_age >= 15 || !isChild)
+        age += 1;
+        if (age >= 15 || !isChild)
             _immunity = CheckImmunity();
     }
 
     // Subjects should die if too old or too weak
-    private void Die()
+    public void Die()
     {
-        if (_age > 100 || _immunity <= 0)
+        if (age > 100 || _immunity <= 0)
         {
             TimeTickSystem.OnTick -= _tickSystemDelegate;
             Destroy(gameObject);
@@ -110,7 +110,7 @@ public class SubjectController : MonoBehaviour
         
         if (!other.transform.CompareTag("Subject")) return;
         SubjectController otherSubject = other.transform.GetComponent<SubjectController>();
-        int otherAge = otherSubject._age;
+        int otherAge = otherSubject.age;
         GiveBirth(otherAge);
     }
 
@@ -119,7 +119,7 @@ public class SubjectController : MonoBehaviour
         if (!other.transform.CompareTag("Subject")) return;
 
         SubjectController otherSubject = other.transform.GetComponent<SubjectController>();
-        var otherStatus = otherSubject.status;
+        var otherStatus = otherSubject._status;
 
         Dependency(otherSubject);
     }
@@ -127,9 +127,9 @@ public class SubjectController : MonoBehaviour
     // Dependencies between subjects
     private void Dependency(SubjectController otherSubject)
     {
-        StatusType otherStatus = otherSubject.status;
-        StatusType newStatus = status;
-        switch (status)
+        StatusType otherStatus = otherSubject._status;
+        StatusType newStatus = _status;
+        switch (_status)
         {
             case StatusType.C:
                 if (otherStatus == StatusType.Z)
@@ -173,8 +173,8 @@ public class SubjectController : MonoBehaviour
                 throw new ArgumentOutOfRangeException();
         }
 
-        if (status == newStatus) return;
-        status = newStatus;
+        if (_status == newStatus) return;
+        _status = newStatus;
         ChangeColor();
         _dayCounter = 0;
     }
@@ -182,7 +182,7 @@ public class SubjectController : MonoBehaviour
     // Colliding subjects can give birth to a child(s)
     private void GiveBirth(int otherAge)
     {
-        if (Random.value < BirthProbability && otherAge >= 20 && otherAge <= 40 && _age >= 20 && _age <= 40)
+        if (Random.value < BirthProbability && otherAge >= 20 && otherAge <= 40 && age >= 20 && age <= 40)
         {
             if (Random.value < .1f)
                 _subjectGenerator.GenerateChild();
@@ -193,8 +193,8 @@ public class SubjectController : MonoBehaviour
     // If object is child it should get not random values as init
     private void SetChildStats()
     {
-        status = StatusType.ZZ;
-        _age = 0;
+        _status = StatusType.ZZ;
+        age = 0;
         _immunity = 10;
     }
 
@@ -202,7 +202,7 @@ public class SubjectController : MonoBehaviour
     private void ChangeColor()
     {
         Color newColor;
-        switch (status)
+        switch (_status)
         {
             case StatusType.C:
                 newColor = Color.red;
@@ -226,8 +226,8 @@ public class SubjectController : MonoBehaviour
     // Statuses transiting to another (also doing damage/healing subject) 
     private void CheckStatus()
     {
-        var newStatus = status;
-        switch (status)
+        var newStatus = _status;
+        switch (_status)
         {
             case StatusType.Z:
                 _immunity -= .1f;
@@ -251,9 +251,9 @@ public class SubjectController : MonoBehaviour
                 throw new ArgumentOutOfRangeException();
         }
 
-        if (status != newStatus)
+        if (_status != newStatus)
         {
-            status = newStatus;
+            _status = newStatus;
             ChangeColor();
             _dayCounter = 0;
         }
